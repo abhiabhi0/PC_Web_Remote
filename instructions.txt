@@ -1,0 +1,19 @@
+Project cleanup and simplification complete.
+Your application is now streamlined to use the more reliable Python server.
+
+To run your media controller, follow these steps:
+
+1. Install the required Python libraries:
+   pip install -r requirements.txt
+
+2. Run the server:
+   python media_control_server.py
+
+3. Find your computer's IP address. You can do this by opening Command Prompt and typing 'ipconfig'.
+
+4. On your Android device, open a web browser and go to: http://<YOUR_PC_IP>:3000
+   (replace <YOUR_PC_IP> with the address from the previous step).
+
+A system tray icon will appear for the server. You can right-click it and select 'Quit' to stop the server.
+
+Firewall Note: The first time you run the server, Windows Defender Firewall might ask for permission. Make sure to allow access, especially for private networks.
