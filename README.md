@@ -1,17 +1,20 @@
 # PC Web Remote
 
-A simple, lightweight web server to control your Windows PC's media playback from any device on your local network, like your phone.
+A simple, lightweight web server to control your Windows PC's media, brightness, and mouse from any device on your local network.
 
-This project uses a Python server and the powerful `nircmd.exe` utility to simulate media key presses, offering a reliable way to manage playback without installing any apps on your remote device—all you need is a web browser.
+This project uses a Python server and the powerful `nircmd.exe` utility to simulate media key presses, adjust system settings, and control the mouse, offering a reliable way to manage your PC without installing any apps on your remote device—all you need is a web browser.
 
 ## Features
 - ⏯️ **Play/Pause:** Control media playback.
 - 🔊 **Volume Control:** Turn the system volume up or down.
 - ⏪⏩ **Seek:** Go backward or forward by 5-second intervals.
+- 🔇 **Mute:** Toggle the system audio.
+- ☀️ **Brightness:** Adjust the screen brightness up or down.
+- 🖱️ **Trackpad & Mouse:** Use your phone screen as a trackpad to move the cursor and perform left/right clicks.
 - 🖥️ **System Tray Icon:** The server runs quietly in the system tray and can be closed from there.
 
 ## How It Works
-The application runs a Flask web server on your PC. When you press a button on the web interface from your phone, it sends a request to the server. The server then uses the bundled `nircmd.exe` utility to execute the corresponding command, such as 'volume up' or 'press left arrow key'.
+The application runs a Flask web server on your PC. When you press a button or move your finger on the trackpad on the web interface, it sends a request to the server. The server then uses the bundled `nircmd.exe` utility to execute the corresponding command, such as 'volume up', 'change brightness', or 'move cursor'.
 
 ## Setup and Usage
 Follow these steps to get your remote control running:
@@ -42,13 +45,10 @@ Follow these steps to get your remote control running:
 
 ## Important Usage Notes
 - **Window Focus for Seeking:** For the "Backward 5s" and "Forward 5s" buttons to work, the media application (e.g., VLC, your web browser with YouTube) **must be the active, focused window** on your PC. This is because these buttons simulate the left and right arrow key presses.
-- **Compatibility:** This application has been tested on **Windows 11** with the following applications:
-  - VLC Media Player
-  - YouTube (in Brave)
-  - JioCinema (in Brave)
+- **Compatibility:** This application has been tested on **Windows 11**. Media controls work with most standard players. Brightness and mouse control should work globally across the OS.
 
 ## Bundled Software
 This project includes `nircmd.exe`, a freeware command-line utility created by Nir Sofer. For more information, please visit the official NirCmd website: [https://www.nirsoft.net/utils/nircmd.html](https://www.nirsoft.net/utils/nircmd.html)
 
 ## License
-This project is open source. Feel free to fork it, modify it, and contribute. It is recommended to use an MIT License if you intend to publish your own version.
+This project is open source. Feel free to fork it, modify it, and contribute.
