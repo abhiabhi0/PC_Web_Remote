@@ -2,6 +2,21 @@ import threading
 from flask import Flask, render_template_string, request, jsonify
 import subprocess
 import os
+import base64
+from io import BytesIO
+import signal
+import sys
+
+# Windows specific imports
+try:
+    import win32gui
+    import win32process
+    import win32api
+    import win32con
+    from PIL import Image, ImageDraw
+    IS_WINDOWS = True
+except ImportError:
+    IS_WINDOWS = False
 
 app = Flask(__name__)
 
@@ -27,9 +42,10 @@ HTML = """
             color: var(--text-color);
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;
             min-height: 100vh;
             margin: 0;
+            padding-top: 20px;
             -webkit-tap-highlight-color: transparent;
         }
         .remote-container {
@@ -37,13 +53,13 @@ HTML = """
             border-radius: 30px;
             padding: 25px;
             width: 100%;
-            max-width: 320px; /* Increased width for trackpad */
+            max-width: 320px;
             box-shadow: 0 15px 35px rgba(0,0,0,0.5), inset 0 2px 2px rgba(255,255,255,0.1);
             border: 1px solid #444;
         }
         .grid-container {
             display: grid;
-            grid-template-columns: 1fr; /* Simplified to a single column layout */
+            grid-template-columns: 1fr;
             gap: 25px;
             justify-items: center;
         }
@@ -109,7 +125,7 @@ HTML = """
             border-radius: 15px;
             border: 1px solid #555;
             cursor: crosshair;
-            touch-action: none; /* Important for preventing scrolling on touch */
+            touch-action: none;
         }
         .mouse-buttons {
             display: grid;
@@ -127,6 +143,46 @@ HTML = """
             color: #888;
             height: 20px;
             text-align: center;
+        }
+        
+        /* Window List Styles */
+        .window-list-container {
+            width: 100%;
+        }
+        #window-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 250px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        .window-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background-color: var(--btn-bg);
+            padding: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .window-item:hover {
+            background-color: var(--btn-active-bg);
+        }
+        .window-item.active {
+            background-color: var(--accent-color);
+            box-shadow: 0 0 10px var(--accent-color);
+        }
+        .window-item img {
+            width: 32px;
+            height: 32px;
+            flex-shrink: 0;
+        }
+        .window-item span {
+            font-size: 0.9em;
+            white-space: normal; /* Allow text to wrap */
+            word-break: break-word; /* Break long words if necessary */
         }
     </style>
 </head>
@@ -147,10 +203,8 @@ HTML = """
                 <button id="btn-brightness-up" onclick="sendCmd('brightness-up')">☀️+</button>
             </div>
             
-            <!-- Separator -->
             <hr style="width: 100%; border-color: #444; margin: 10px 0;">
 
-            <!-- Trackpad -->
             <div class="trackpad-area">
                 <div id="trackpad"></div>
                 <div class="mouse-buttons">
@@ -159,6 +213,13 @@ HTML = """
                 </div>
             </div>
             
+            <hr style="width: 100%; border-color: #444; margin: 10px 0;">
+
+            <!-- Window List -->
+            <div class="window-list-container">
+                <div id="window-list"></div>
+            </div>
+
             <div id="status">PC Web Remote</div>
         </div>
     </div>
@@ -198,25 +259,19 @@ HTML = """
         }
 
         const trackpad = document.getElementById('trackpad');
-        let lastX = 0;
-        let lastY = 0;
-        let isDragging = false;
+        let lastX = 0, lastY = 0, isDragging = false;
 
         function handleMove(currentX, currentY) {
             if (!isDragging) return;
-            
-            const dx = Math.round(currentX - lastX);
-            const dy = Math.round(currentY - lastY);
+            const dx = Math.round(currentX - lastX), dy = Math.round(currentY - lastY);
             lastX = currentX;
             lastY = currentY;
-
             if (dx === 0 && dy === 0) return;
-
             fetch('/mouse-move', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ dx: dx, dy: dy })
-            }); // No need to wait for response for smooth tracking
+            });
         }
 
         function startDrag(x, y) {
@@ -225,37 +280,65 @@ HTML = """
             lastY = y;
             trackpad.style.backgroundColor = 'var(--btn-active-bg)';
         }
-
         function endDrag() {
             isDragging = false;
             trackpad.style.backgroundColor = 'var(--trackpad-bg)';
         }
 
-        // Mouse Events
-        trackpad.addEventListener('mousedown', (e) => {
-            e.preventDefault();
-            startDrag(e.clientX, e.clientY);
-        });
-        trackpad.addEventListener('mousemove', (e) => {
-            e.preventDefault();
-            handleMove(e.clientX, e.clientY);
-        });
+        trackpad.addEventListener('mousedown', (e) => { e.preventDefault(); startDrag(e.clientX, e.clientY); });
+        trackpad.addEventListener('mousemove', (e) => { e.preventDefault(); handleMove(e.clientX, e.clientY); });
         trackpad.addEventListener('mouseup', endDrag);
         trackpad.addEventListener('mouseleave', endDrag);
-
-        // Touch Events
-        trackpad.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            const touch = e.touches[0];
-            startDrag(touch.clientX, touch.clientY);
-        });
-        trackpad.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-            const touch = e.touches[0];
-            handleMove(touch.clientX, touch.clientY);
-        });
+        trackpad.addEventListener('touchstart', (e) => { e.preventDefault(); const t = e.touches[0]; startDrag(t.clientX, t.clientY); });
+        trackpad.addEventListener('touchmove', (e) => { e.preventDefault(); const t = e.touches[0]; handleMove(t.clientX, t.clientY); });
         trackpad.addEventListener('touchend', endDrag);
         trackpad.addEventListener('touchcancel', endDrag);
+
+        // Window List Logic
+        const windowListEl = document.getElementById('window-list');
+
+        function switchWindow(hwnd) {
+            statusEl.innerText = 'Switching window...';
+            fetch('/switch-window', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ hwnd: hwnd })
+            })
+            .then(res => res.json())
+            .then(data => {
+                statusEl.innerText = data.status;
+                setTimeout(fetchWindows, 200);
+            });
+        }
+
+        function fetchWindows() {
+            fetch('/windows')
+                .then(res => res.json())
+                .then(windows => {
+                    windowListEl.innerHTML = '';
+                    windows.forEach(win => {
+                        const item = document.createElement('div');
+                        item.className = 'window-item';
+                        if (win.isActive) {
+                            item.classList.add('active');
+                        }
+                        item.onclick = () => switchWindow(win.hwnd);
+
+                        const img = document.createElement('img');
+                        img.src = `data:image/png;base64,${win.icon}`;
+                        
+                        const span = document.createElement('span');
+                        span.innerText = win.title;
+
+                        item.appendChild(img);
+                        item.appendChild(span);
+                        windowListEl.appendChild(item);
+                    });
+                });
+        }
+        
+        setInterval(fetchWindows, 3000);
+        fetchWindows();
 
     </script>
 </body>
@@ -266,20 +349,12 @@ NIRCMD_PATH = os.path.join(os.path.dirname(__file__), 'nircmd.exe')
 
 def run_nircmd(args):
     try:
-        # Using CREATE_NO_WINDOW flag to prevent cmd window from flashing
         startupinfo = subprocess.STARTUPINFO()
         startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
         subprocess.run([NIRCMD_PATH] + args, check=True, capture_output=True, startupinfo=startupinfo)
-        print(f"NirCmd called: {' '.join(args)} | Success")
         return True
-    except FileNotFoundError:
-        print(f"NirCmd error: nircmd.exe not found at {NIRCMD_PATH}")
-        return False
-    except subprocess.CalledProcessError as e:
-        print(f"NirCmd error: {' '.join(args)} | {e.stderr.decode(errors='ignore').strip()}")
-        return False
     except Exception as e:
-        print(f"NirCmd unexpected error: {e}")
+        print(f"NirCmd error: {e}")
         return False
 
 @app.route('/')
@@ -332,42 +407,145 @@ def mouse_move():
     dx = data.get('dx', 0)
     dy = data.get('dy', 0)
     run_nircmd(['movecursor', str(dx), str(dy)])
-    return jsonify(status="OK") # No need to show status for every micro-movement
+    return jsonify(status="OK")
 
 @app.route('/mouse-click', methods=['POST'])
 def mouse_click():
     data = request.get_json()
-    button = data.get('button', 'left') # Default to left click
+    button = data.get('button', 'left')
     if button not in ['left', 'right']:
         return jsonify(status="Invalid button"), 400
-    
     ok = run_nircmd(['sendmouse', button, 'click'])
     return jsonify(status=f'{button.capitalize()} Click' if ok else 'Failed')
+
+# --- Windows API Routes ---
+if IS_WINDOWS:
+    def _create_default_icon_b64():
+        img = Image.new('RGBA', (32, 32), (0, 0, 0, 0))
+        d = ImageDraw.Draw(img)
+        d.rectangle([6, 6, 26, 26], fill=(80, 80, 80), outline=(150, 150, 150))
+        d.text((12, 10), "?", fill=(220, 220, 220))
+        buffered = BytesIO()
+        img.save(buffered, format="PNG")
+        return base64.b64encode(buffered.getvalue()).decode('utf-8')
+
+    DEFAULT_ICON = _create_default_icon_b64()
+
+    def get_windows():
+        windows = []
+        active_hwnd = win32gui.GetForegroundWindow()
+
+        def enum_windows_proc(hwnd, lParam):
+            if win32gui.IsWindowVisible(hwnd) and win32gui.GetWindowText(hwnd) != '':
+                title = win32gui.GetWindowText(hwnd)
+                if title in ["Windows Default Lock Screen", "Program Manager"]:
+                    return True
+                icon_b64 = get_icon_for_hwnd(hwnd, title)
+                windows.append({
+                    "title": title, "hwnd": hwnd,
+                    "isActive": hwnd == active_hwnd, "icon": icon_b64
+                })
+            return True
+
+        win32gui.EnumWindows(enum_windows_proc, None)
+        return sorted(windows, key=lambda x: not x['isActive'])
+
+    def _hicon_to_b64(hicon):
+        hdc = win32gui.GetDC(0)
+        hbmp = win32gui.CreateCompatibleBitmap(hdc, 32, 32)
+        win32gui.ReleaseDC(0, hdc)
+        hdc_mem = win32gui.CreateCompatibleDC(0)
+        win32gui.SelectObject(hdc_mem, hbmp)
+        win32gui.DrawIconEx(hdc_mem, 0, 0, hicon, 32, 32, 0, 0, win32con.DI_NORMAL)
+        bmp_info = win32gui.GetObject(hbmp)
+        bmp_str = win32gui.GetBitmapBits(hbmp, True)
+        img = Image.frombuffer('RGBA', (bmp_info.bmWidth, bmp_info.bmHeight), bmp_str, 'raw', 'BGRA', 0, 1)
+        win32gui.DeleteObject(hbmp)
+        win32gui.DeleteDC(hdc_mem)
+        buffered = BytesIO()
+        img.save(buffered, format="PNG")
+        return base64.b64encode(buffered.getvalue()).decode('utf-8')
+
+    def get_icon_for_hwnd(hwnd, title):
+        try:
+            hicon = win32gui.SendMessage(hwnd, win32con.WM_GETICON, win32con.ICON_SMALL2, 0)
+            if hicon == 0: hicon = win32gui.SendMessage(hwnd, win32con.WM_GETICON, win32con.ICON_SMALL, 0)
+            if hicon == 0: hicon = win32gui.GetClassLong(hwnd, win32con.GCL_HICONSM)
+            if hicon != 0: return _hicon_to_b64(hicon)
+        except Exception: pass
+
+        try:
+            _, pid = win32process.GetWindowThreadProcessId(hwnd)
+            if pid == 0: return DEFAULT_ICON
+            handle = win32api.OpenProcess(win32con.PROCESS_QUERY_INFORMATION | win32con.PROCESS_VM_READ, False, pid)
+            exe_path = win32process.GetModuleFileNameEx(handle, 0)
+            win32api.CloseHandle(handle)
+            large, small = win32gui.ExtractIconEx(exe_path, 0)
+            if small:
+                hicon = small[0]
+                b64_icon = _hicon_to_b64(hicon)
+                win32gui.DestroyIcon(hicon)
+                return b64_icon
+        except Exception: pass
+        return DEFAULT_ICON
+
+    @app.route('/windows', methods=['GET'])
+    def list_windows():
+        return jsonify(get_windows())
+
+    @app.route('/switch-window', methods=['POST'])
+    def switch_window():
+        data = request.get_json()
+        hwnd = data.get('hwnd')
+        if not hwnd: return jsonify(status="Invalid handle"), 400
+        try:
+            win32gui.ShowWindow(hwnd, win32con.SW_SHOW)
+            win32gui.SetForegroundWindow(hwnd)
+            return jsonify(status="Switched Window")
+        except Exception as e:
+            print(f"Failed to switch to window {hwnd}: {e}")
+            return jsonify(status="Failed to switch"), 500
 
 def run_flask():
     app.run(host='0.0.0.0', port=3000, debug=False, use_reloader=False)
 
+icon = None
+
+def on_quit(icon, item):
+    print("Stopping server...")
+    icon.stop()
+
 if __name__ == '__main__':
-    threading.Thread(target=run_flask, daemon=True).start()
-    print("PC Web Remote Server running!")
-    print("Open http://<YOUR_PC_IP>:3000 from your phone to control media.")
+    if not IS_WINDOWS:
+        print("This application requires Windows-specific libraries to run.")
+        sys.exit(1)
+
+    flask_thread = threading.Thread(target=run_flask, daemon=True)
+    flask_thread.start()
+    
     import pystray
-    from PIL import Image, ImageDraw
     def create_image():
-        # Simple remote icon
         img = Image.new('RGB', (64, 64), color='black')
         d = ImageDraw.Draw(img)
-        # Remote body
         d.rectangle([20, 10, 44, 54], fill=(180, 180, 180))
-        # Screen
         d.rectangle([24, 14, 40, 30], fill=(50, 50, 50))
-        # Button
         d.ellipse([28, 36, 36, 44], fill=(255, 0, 0))
         return img
-    def on_quit(icon, item):
-        icon.stop()
-        print("Server stopped.")
+        
     icon = pystray.Icon("PCWebRemote", create_image(), "PC Web Remote", menu=pystray.Menu(
         pystray.MenuItem("Quit", on_quit)
     ))
-    icon.run()
+    
+    icon_thread = threading.Thread(target=icon.run, daemon=True)
+    icon_thread.start()
+
+    print("PC Web Remote Server running! Open http://<YOUR_PC_IP>:3000")
+    print("Press Ctrl+C to stop the server.")
+
+    try:
+        flask_thread.join()
+    except KeyboardInterrupt:
+        print("\nCtrl+C received. Stopping server...")
+        if icon:
+            icon.stop()
+        sys.exit(0)
