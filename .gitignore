@@ -11,3 +11,7 @@ pip-selfcheck.json
 # Windows
 Thumbs.db
 desktop.ini
+
+# Log files
+*.log
+logs/

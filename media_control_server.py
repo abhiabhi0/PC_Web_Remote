@@ -1,3 +1,4 @@
+import logging
 import threading
 from flask import Flask, render_template_string, request, jsonify
 import subprocess
@@ -6,6 +7,15 @@ import base64
 from io import BytesIO
 import signal
 import sys
+
+# Configure logging
+log_dir = 'logs'
+if not os.path.exists(log_dir):
+    os.makedirs(log_dir)
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(asctime)s - %(levelname)s - %(message)s',
+                    filename=os.path.join(log_dir, 'media_control.log'),
+                    filemode='w')
 
 # Windows specific imports
 try:
@@ -19,6 +29,10 @@ except ImportError:
     IS_WINDOWS = False
 
 app = Flask(__name__)
+# Suppress Flask's default logger
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
+
 
 HTML = """
 <!DOCTYPE html>
@@ -352,9 +366,10 @@ def run_nircmd(args):
         startupinfo = subprocess.STARTUPINFO()
         startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
         subprocess.run([NIRCMD_PATH] + args, check=True, capture_output=True, startupinfo=startupinfo)
+        logging.debug(f"NirCmd command '{' '.join(args)}' executed successfully.")
         return True
     except Exception as e:
-        print(f"NirCmd error: {e}")
+        logging.error(f"NirCmd error: {e}")
         return False
 
 @app.route('/')
@@ -501,9 +516,10 @@ if IS_WINDOWS:
         try:
             win32gui.ShowWindow(hwnd, win32con.SW_SHOW)
             win32gui.SetForegroundWindow(hwnd)
+            logging.debug(f"Switched to window {hwnd}")
             return jsonify(status="Switched Window")
         except Exception as e:
-            print(f"Failed to switch to window {hwnd}: {e}")
+            logging.error(f"Failed to switch to window {hwnd}: {e}")
             return jsonify(status="Failed to switch"), 500
 
 def run_flask():
@@ -512,14 +528,27 @@ def run_flask():
 icon = None
 
 def on_quit(icon, item):
-    print("Stopping server...")
+    logging.debug("Stopping server...")
     icon.stop()
+
+import socket
+
+def get_ip_address():
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except Exception:
+        return "127.0.0.1"
 
 if __name__ == '__main__':
     if not IS_WINDOWS:
-        print("This application requires Windows-specific libraries to run.")
+        logging.error("This application requires Windows-specific libraries to run.")
         sys.exit(1)
 
+    # Run Flask in a background thread
     flask_thread = threading.Thread(target=run_flask, daemon=True)
     flask_thread.start()
     
@@ -536,16 +565,16 @@ if __name__ == '__main__':
         pystray.MenuItem("Quit", on_quit)
     ))
     
-    icon_thread = threading.Thread(target=icon.run, daemon=True)
-    icon_thread.start()
-
-    print("PC Web Remote Server running! Open http://<YOUR_PC_IP>:3000")
-    print("Press Ctrl+C to stop the server.")
+    ip_address = get_ip_address()
+    print(f"PC Web Remote Server running! Open http://{ip_address}:3000")
+    print("Press Ctrl+C or use the tray icon to quit.")
 
     try:
-        flask_thread.join()
+        icon.run()
     except KeyboardInterrupt:
-        print("\nCtrl+C received. Stopping server...")
+        logging.debug("\nCtrl+C received. Stopping server...")
+    finally:
         if icon:
             icon.stop()
+        logging.debug("Exiting application.")
         sys.exit(0)
