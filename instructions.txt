@@ -11,8 +11,10 @@ To run your media controller, follow these steps:
 
 3. Find your computer's IP address. You can do this by opening Command Prompt and typing 'ipconfig'.
 
-4. On your Android device, open a web browser and go to: http://<YOUR_PC_IP>:3000
-   (replace <YOUR_PC_IP> with the address from the previous step).
+4. On your Android device, you can connect in three ways:
+   a) Right-click the system tray icon on your PC and select 'Show QR Code (Quick Connect)'. Scan this with your phone's camera!
+   b) Right-click the system tray icon and select 'Show Connection Info' to find the Hostname URL.
+   c) Open a web browser and go to: http://<YOUR_PC_IP>:3000
 
 A system tray icon will appear for the server. You can right-click it and select 'Quit' to stop the server.
 

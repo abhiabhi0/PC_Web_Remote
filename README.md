@@ -41,8 +41,9 @@ Follow these steps to get your remote control running:
 - To stop the server, press **Ctrl+C** in the terminal window.
 
 **5. Connect From Your Phone:**
-- Find your PC's local IP address. You can do this by opening a Command Prompt and typing `ipconfig`. Look for the "IPv4 Address."
-- Open a web browser on your phone and navigate to `http://<YOUR_PC_IP>:3000` (e.g., `http://192.168.1.10:3000`).
+- **Quickest Method:** On your PC, right-click the "PC Web Remote" icon in your system tray and select **"Show QR Code (Quick Connect)"**. Simply scan this QR code with your phone's camera!
+- **Hostname Method:** If your IP changes frequently, you can connect via Hostname. Right-click the system tray icon and click "Show Connection Info" to see the URLs.
+- **Manual Method:** Open a web browser on your phone and navigate to `http://<YOUR_PC_IP>:3000` (e.g., `http://192.168.1.10:3000`). Find your PC's IP address by typing `ipconfig` in Command Prompt.
 - You should now see the remote control interface.
 
 ## Important Usage Notes

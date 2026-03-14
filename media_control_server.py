@@ -7,6 +7,9 @@ import base64
 from io import BytesIO
 import signal
 import sys
+import qrcode
+import socket
+import ctypes
 
 # Configure logging
 log_dir = 'logs'
@@ -543,6 +546,40 @@ def get_ip_address():
     except Exception:
         return "127.0.0.1"
 
+def get_hostname():
+    try:
+        return socket.gethostname()
+    except Exception:
+        return "localhost"
+
+def show_qr_code(icon, item):
+    ip = get_ip_address()
+    url = f"http://{ip}:3000"
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(url)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white")
+    
+    # Open the image in the default image viewer
+    img.show()
+
+def show_connection_info(icon, item):
+    ip = get_ip_address()
+    
+    msg = f"URL to connect:\n\nhttp://{ip}:3000\n\n(Type this exactly into your Android browser)"
+    
+    # Show a message box on Windows
+    if IS_WINDOWS:
+        ctypes.windll.user32.MessageBoxW(0, msg, "PC Web Remote Connection Info", 0x40 | 0x0)
+    else:
+        print(msg)
+
+
 if __name__ == '__main__':
     if not IS_WINDOWS:
         logging.error("This application requires Windows-specific libraries to run.")
@@ -561,12 +598,19 @@ if __name__ == '__main__':
         d.ellipse([28, 36, 36, 44], fill=(255, 0, 0))
         return img
         
+    def dynamic_url(_):
+        return f"http://{get_ip_address()}:3000"
+        
     icon = pystray.Icon("PCWebRemote", create_image(), "PC Web Remote", menu=pystray.Menu(
+        pystray.MenuItem("Show QR Code (Quick Connect)", show_qr_code),
+        pystray.MenuItem(dynamic_url, show_connection_info),
+        pystray.Menu.SEPARATOR,
         pystray.MenuItem("Quit", on_quit)
     ))
     
     ip_address = get_ip_address()
-    print(f"PC Web Remote Server running! Open http://{ip_address}:3000")
+    print(f"PC Web Remote Server running!")
+    print(f"Open http://{ip_address}:3000")
     print("Press Ctrl+C or use the tray icon to quit.")
 
     try:
