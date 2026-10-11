@@ -1,21 +1,22 @@
-Project cleanup and simplification complete.
-Your application is now streamlined to use the more reliable Python server.
+PC Web Remote - Setup and Connection Instructions
 
-To run your media controller, follow these steps:
+To run your PC Web Remote:
 
 1. Install the required Python libraries:
    pip install -r requirements.txt
 
 2. Run the server:
    python media_control_server.py
+   (Or double-click Start_PC_Remote.bat)
 
-3. Find your computer's IP address. You can do this by opening Command Prompt and typing 'ipconfig'.
+3. Connect from your Android phone (on the same Wi-Fi network):
+   a) Right-click the system tray icon on your PC and select 'Show QR Code (IP - Recommended)'. Scan this with your phone's camera!
+   b) Enter your PC's IP URL: http://<YOUR_PC_IP>:3000 (Most reliable for all Android devices)
+   c) Enter your PC's mDNS URL: http://<HOSTNAME>.local:3000
 
-4. On your Android device, you can connect in three ways:
-   a) Right-click the system tray icon on your PC and select 'Show QR Code (Quick Connect)'. Scan this with your phone's camera!
-   b) Right-click the system tray icon and select 'Show Connection Info' to find the Hostname URL.
-   c) Open a web browser and go to: http://<YOUR_PC_IP>:3000
+4. Add to Home Screen:
+   In Chrome or Samsung Internet on Android, tap the menu (⋮) and select 'Add to Home screen' or 'Install app'. The remote will open full-screen like a native app.
 
-A system tray icon will appear for the server. You can right-click it and select 'Quit' to stop the server.
-
-Firewall Note: The first time you run the server, Windows Defender Firewall might ask for permission. Make sure to allow access, especially for private networks.
+5. Media & Navigation:
+   - Media Mode features Rewind, Play/Pause, and Forward with configurable seek intervals (5s, 10s, 15s, 30s, 60s, or custom seconds).
+   - Navigate Mode features Track Navigation (Previous/Next Track), Browser navigation, shortcuts, and touchpad mouse.

@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0c0e14">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="PC Web Remote - Control your Windows PC media, volume, navigation, and mouse directly from your phone browser.">
+    <title>PC Web Remote</title>
+    
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="alternate" type="application/manifest+json" href="/manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="/static/icons/icon-192.png">
+    <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div id="app" class="app-container">
+        <!-- Top Status Bar -->
+        <header class="status-bar">
+            <div class="connection-pill" id="connection-pill" title="Tap to refresh connection">
+                <span class="status-dot online" id="status-dot"></span>
+                <span class="status-label" id="status-label">Connected</span>
+            </div>
+            
+            <div class="action-toast" id="action-toast">PC Web Remote</div>
+            
+            <button class="icon-btn header-mute-btn" id="btn-quick-mute" aria-label="Toggle Mute" title="Toggle Mute">
+                <svg id="header-mute-icon" class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                </svg>
+            </button>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="content-container">
+            <!-- ===================== MEDIA MODE (DEFAULT) ===================== -->
+            <section id="view-media" class="mode-view active">
+                <!-- Volume Control Card -->
+                <div class="card volume-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                            </svg>
+                            <span>System Volume</span>
+                        </div>
+                        <div class="volume-display">
+                            <span id="volume-text" class="volume-value">--%</span>
+                            <span id="mute-indicator" class="badge badge-muted" style="display: none;">Muted</span>
+                        </div>
+                    </div>
+
+                    <div class="volume-slider-container">
+                        <input type="range" id="volume-slider" class="styled-slider" min="0" max="100" value="50" aria-label="System volume">
+                    </div>
+
+                    <div class="volume-btn-row">
+                        <button class="btn btn-secondary btn-step" id="btn-volume-down" aria-label="Decrease Volume">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            <span>-5%</span>
+                        </button>
+                        
+                        <button class="btn btn-secondary btn-step" id="btn-mute-toggle" aria-label="Mute / Unmute">
+                            <svg id="mute-btn-icon" class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                                <line x1="23" y1="9" x2="17" y2="15"></line>
+                                <line x1="17" y1="9" x2="23" y2="15"></line>
+                            </svg>
+                            <span id="mute-btn-label">Mute</span>
+                        </button>
+                        
+                        <button class="btn btn-secondary btn-step" id="btn-volume-up" aria-label="Increase Volume">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            <span>+5%</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Primary Media Playback & Seeking Card -->
+                <div class="card playback-card">
+                    <div class="playback-controls-row">
+                        <!-- Rewind Button -->
+                        <button class="btn btn-seek-main" id="btn-seek-backward" title="Rewind by configured interval">
+                            <svg class="icon icon-md" viewBox="0 0 24 24" fill="currentColor">
+                                <polygon points="11 19 2 12 11 5 11 19"></polygon>
+                                <polygon points="22 19 13 12 22 5 22 19"></polygon>
+                            </svg>
+                            <span id="rewind-label" class="seek-label">−10 sec</span>
+                        </button>
+
+                        <!-- Large Play / Pause Button -->
+                        <button class="btn btn-play-pause" id="btn-play-pause" aria-label="Play or Pause" title="Play / Pause">
+                            <svg id="play-pause-icon" class="icon icon-lg" viewBox="0 0 24 24" fill="currentColor">
+                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                            </svg>
+                            <span class="btn-play-label">Play / Pause</span>
+                        </button>
+
+                        <!-- Forward Button -->
+                        <button class="btn btn-seek-main" id="btn-seek-forward" title="Fast-forward by configured interval">
+                            <span id="forward-label" class="seek-label">+10 sec</span>
+                            <svg class="icon icon-md" viewBox="0 0 24 24" fill="currentColor">
+                                <polygon points="13 19 22 12 13 5 13 19"></polygon>
+                                <polygon points="2 19 11 12 2 5 2 19"></polygon>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Configurable Seek Interval -->
+                    <div class="seek-config-container">
+                        <div class="seek-config-header">
+                            <span class="card-subtitle">Seek Interval</span>
+                            <div class="custom-seek-box">
+                                <input type="number" id="input-custom-seek" min="1" max="600" placeholder="Sec" class="custom-seek-input" aria-label="Custom seek seconds">
+                                <button class="btn-set-custom" id="btn-set-custom-seek">Set</button>
+                            </div>
+                        </div>
+                        <div class="interval-chips" id="seek-chips">
+                            <button class="chip" data-interval="5">5s</button>
+                            <button class="chip active" data-interval="10">10s</button>
+                            <button class="chip" data-interval="15">15s</button>
+                            <button class="chip" data-interval="30">30s</button>
+                            <button class="chip" data-interval="60">60s</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Brightness Controls Card -->
+                <div class="card brightness-card">
+                    <div class="card-title">
+                        <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="5"></circle>
+                            <line x1="12" y1="1" x2="12" y2="3"></line>
+                            <line x1="12" y1="21" x2="12" y2="23"></line>
+                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                            <line x1="1" y1="12" x2="3" y2="12"></line>
+                            <line x1="21" y1="12" x2="23" y2="12"></line>
+                            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                        </svg>
+                        <span>Screen Brightness</span>
+                        <span id="brightness-text" class="brightness-value">100%</span>
+                    </div>
+                    <div class="brightness-btn-row">
+                        <button class="btn btn-secondary btn-compact" id="btn-brightness-down">
+                            <span>Dim (-10%)</span>
+                        </button>
+                        <button class="btn btn-secondary btn-compact" id="btn-brightness-up">
+                            <span>Brighten (+10%)</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===================== NAVIGATE MODE ===================== -->
+            <section id="view-nav" class="mode-view">
+                <!-- Media Track Navigation Card (Relocated from Media) -->
+                <div class="card track-nav-card">
+                    <div class="card-title">
+                        <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="5 4 15 12 5 20 5 4" fill="currentColor"></polygon>
+                            <line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="2.5"></line>
+                        </svg>
+                        <span>Track Navigation</span>
+                    </div>
+                    <div class="grid-2col">
+                        <button class="btn btn-secondary btn-nav" id="btn-media-prev" title="Previous Track (Media Prev Key)">
+                            <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
+                                <polygon points="19 20 9 12 19 4 19 20"></polygon>
+                                <line x1="5" y1="19" x2="5" y2="5" stroke="currentColor" stroke-width="3"></line>
+                            </svg>
+                            <span>Previous Track</span>
+                        </button>
+
+                        <button class="btn btn-secondary btn-nav" id="btn-media-next" title="Next Track (Media Next Key)">
+                            <span>Next Track</span>
+                            <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
+                                <polygon points="5 4 15 12 5 20 5 4"></polygon>
+                                <line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="3"></line>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Browser & PC Navigation Card -->
+                <div class="card nav-card">
+                    <div class="card-title">
+                        <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+                        </svg>
+                        <span>Browser & Window Navigation</span>
+                    </div>
+
+                    <div class="grid-2col">
+                        <button class="btn btn-secondary btn-nav" id="btn-nav-back" title="Browser Back (Alt+Left on PC)">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <line x1="19" y1="12" x2="5" y2="12"></line>
+                                <polyline points="12 19 5 12 12 5"></polyline>
+                            </svg>
+                            <span>Browser Back</span>
+                        </button>
+
+                        <button class="btn btn-secondary btn-nav" id="btn-nav-forward" title="Browser Forward (Alt+Right on PC)">
+                            <span>Browser Forward</span>
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                <polyline points="12 5 19 12 12 19"></polyline>
+                            </svg>
+                        </button>
+
+                        <button class="btn btn-secondary btn-nav" id="btn-nav-refresh" title="Refresh Page (F5)">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <polyline points="23 4 23 10 17 10"></polyline>
+                                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                            </svg>
+                            <span>Refresh (F5)</span>
+                        </button>
+
+                        <button class="btn btn-secondary btn-nav" id="btn-nav-fullscreen" title="Toggle Fullscreen (F11)">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                            </svg>
+                            <span>Fullscreen</span>
+                        </button>
+                    </div>
+
+                    <div class="grid-3col" style="margin-top: 10px;">
+                        <button class="btn btn-secondary btn-compact" id="btn-nav-escape" title="Escape key">
+                            <span>Esc</span>
+                        </button>
+                        <button class="btn btn-secondary btn-compact" id="btn-nav-slide-prev" title="Previous Presentation Slide (Page Up)">
+                            <span>▲ Slide Prev</span>
+                        </button>
+                        <button class="btn btn-secondary btn-compact" id="btn-nav-slide-next" title="Next Presentation Slide (Page Down)">
+                            <span>▼ Slide Next</span>
+                        </button>
+                    </div>
+
+                    <div class="focus-notice">
+                        <svg class="icon icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="16" x2="12" y2="12"></line>
+                            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                        </svg>
+                        <span>Commands target the active window on your Windows PC.</span>
+                    </div>
+                </div>
+
+                <!-- Shortcuts Card -->
+                <div class="card shortcuts-card">
+                    <div class="card-title">
+                        <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect>
+                            <line x1="6" y1="8" x2="6.01" y2="8"></line>
+                            <line x1="10" y1="8" x2="10.01" y2="8"></line>
+                            <line x1="14" y1="8" x2="14.01" y2="8"></line>
+                            <line x1="18" y1="8" x2="18.01" y2="8"></line>
+                            <line x1="8" y1="16" x2="16" y2="16"></line>
+                        </svg>
+                        <span>Convenient Shortcuts</span>
+                    </div>
+
+                    <div class="grid-3col">
+                        <button class="btn btn-secondary btn-compact" data-shortcut="tab">Tab ⇥</button>
+                        <button class="btn btn-secondary btn-compact" data-shortcut="enter">Enter ↵</button>
+                        <button class="btn btn-secondary btn-compact" data-shortcut="space">Space ␣</button>
+                        <button class="btn btn-secondary btn-compact" data-shortcut="win-d">Desktop 🪟</button>
+                        <button class="btn btn-secondary btn-compact" data-shortcut="alt-tab">Alt+Tab ⇋</button>
+                        <button class="btn btn-secondary btn-compact" data-shortcut="subtitles">Subtitles 💬</button>
+                    </div>
+                </div>
+
+                <!-- Touchpad & Mouse Section -->
+                <div class="card touchpad-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="6" y="3" width="12" height="18" rx="6"></rect>
+                                <line x1="12" y1="7" x2="12" y2="11"></line>
+                            </svg>
+                            <span>Mouse & Touchpad</span>
+                        </div>
+                    </div>
+
+                    <div class="touchpad-surface" id="touchpad" role="region" aria-label="Touchpad mouse control">
+                        <div class="touchpad-crosshair"></div>
+                        <div class="touchpad-hint">Swipe to move cursor • Tap to click</div>
+                    </div>
+
+                    <div class="mouse-click-row">
+                        <button class="btn btn-secondary btn-mouse-click" id="btn-mouse-left">
+                            <span>Left Click</span>
+                        </button>
+                        <button class="btn btn-secondary btn-mouse-click" id="btn-mouse-right">
+                            <span>Right Click</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===================== MORE MODE ===================== -->
+            <section id="view-more" class="mode-view">
+                <!-- Connection Status & Diagnostics Card -->
+                <div class="card info-card">
+                    <div class="card-title">
+                        <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="2" y1="12" x2="22" y2="12"></line>
+                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                        </svg>
+                        <span>Connection & Network</span>
+                    </div>
+
+                    <div class="info-table">
+                        <div class="info-row">
+                            <span class="info-key">Status:</span>
+                            <span class="info-val" id="info-status-val">Connected</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-key">PC Hostname:</span>
+                            <span class="info-val font-mono" id="info-hostname-val">--</span>
+                        </div>
+                        <div class="info-row highlight-row">
+                            <span class="info-key">Direct IP URL (Recommended):</span>
+                            <span class="info-val font-mono" id="info-ip-url">--</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-key">mDNS Local URL:</span>
+                            <span class="info-val font-mono" id="info-mdns-url">--</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-key">Windows Name URL:</span>
+                            <span class="info-val font-mono" id="info-host-url">--</span>
+                        </div>
+                    </div>
+
+                    <div class="ip-solution-note">
+                        <strong>💡 How to Connect from Android:</strong>
+                        <p>Android does not support legacy NetBIOS computer names. To connect from your phone, use the <strong>Direct IP URL</strong> or <strong>.local mDNS URL</strong> above, or scan the QR code below.</p>
+                    </div>
+
+                    <button class="btn btn-secondary btn-block" id="btn-reconnect-now">
+                        <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                        </svg>
+                        <span>Refresh & Reconnect</span>
+                    </button>
+                </div>
+
+                <!-- Quick Connect QR Code Card -->
+                <div class="card qr-card">
+                    <div class="card-title">
+                        <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                        </svg>
+                        <span>Quick Connect QR Code</span>
+                    </div>
+
+                    <div class="qr-switch-row">
+                        <button class="chip active" id="chip-qr-ip">Direct IP (100% Reachable)</button>
+                        <button class="chip" id="chip-qr-mdns">.local Hostname</button>
+                    </div>
+
+                    <div class="qr-preview-box">
+                        <img id="qr-image" src="/api/qr?type=ip" alt="QR Code to connect" class="qr-img">
+                    </div>
+                    <p class="qr-caption" id="qr-caption">Scan with another phone or tablet to connect immediately.</p>
+                </div>
+
+                <!-- Power & Usability Settings Card -->
+                <div class="card usability-card">
+                    <div class="card-title">
+                        <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                        </svg>
+                        <span>Screen & Power</span>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-text">
+                            <span class="setting-title">Keep Screen Awake</span>
+                            <span class="setting-desc">Prevents phone screen from dimming/sleeping</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="setting-wake-lock" checked>
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Android Home Screen & PWA Guide Card -->
+                <div class="card pwa-card">
+                    <div class="card-title">
+                        <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                            <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                        </svg>
+                        <span>Add to Android Home Screen</span>
+                    </div>
+
+                    <p class="pwa-desc">Install this remote as a standalone app on your phone for full-screen movie control without the browser address bar:</p>
+                    
+                    <button class="btn btn-primary btn-block" id="btn-pwa-install" style="display: none; margin-bottom: 12px;">
+                        <span>📱 Install App on Home Screen</span>
+                    </button>
+
+                    <div class="pwa-steps">
+                        <div class="pwa-step">
+                            <span class="step-num">1</span>
+                            <span>Tap the browser menu (⋮) in Chrome or Samsung Internet.</span>
+                        </div>
+                        <div class="pwa-step">
+                            <span class="step-num">2</span>
+                            <span>Select <strong>"Add to Home screen"</strong> or <strong>"Install app"</strong>.</span>
+                        </div>
+                        <div class="pwa-step">
+                            <span class="step-num">3</span>
+                            <span>Open the app from your home screen anytime!</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Bottom Navigation Bar -->
+        <nav class="bottom-nav">
+            <button class="nav-tab active" id="tab-media" data-target="view-media" aria-label="Media Mode">
+                <svg class="icon nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polygon points="10 8 16 12 10 16 10 8" fill="currentColor"></polygon>
+                </svg>
+                <span class="nav-text">Media</span>
+            </button>
+
+            <button class="nav-tab" id="tab-nav" data-target="view-nav" aria-label="Navigation Mode">
+                <svg class="icon nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+                </svg>
+                <span class="nav-text">Navigate</span>
+            </button>
+
+            <button class="nav-tab" id="tab-more" data-target="view-more" aria-label="More & Settings Mode">
+                <svg class="icon nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+                <span class="nav-text">More</span>
+            </button>
+        </nav>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

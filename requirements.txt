@@ -3,3 +3,6 @@ pystray
 pillow
 pywin32
 qrcode
+pycaw
+comtypes
+zeroconf
