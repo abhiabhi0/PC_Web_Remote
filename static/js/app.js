@@ -17,6 +17,7 @@
         isMuted: false,
         systemBrightness: 100,
         seekInterval: parseInt(localStorage.getItem('pc_remote_seek_interval') || '10', 10),
+        isDragging: false,
         
         // Wake Lock & PWA
         wakeLock: null,
@@ -498,7 +499,59 @@
     });
 
     // ==========================================
-    // Touchpad & Mouse Control
+    // Collapsible Panels (Media & Navigate)
+    // ==========================================
+    const toggleHeaders = document.querySelectorAll('.card-header-toggle');
+    toggleHeaders.forEach((header) => {
+        const targetId = header.dataset.toggleTarget;
+        const targetBody = targetId ? document.getElementById(targetId) : null;
+        const chevron = header.querySelector('.chevron-icon');
+        const statusText = header.querySelector('.collapse-status-text');
+
+        function toggleCollapse() {
+            if (!targetBody) return;
+            const isCurrentlyExpanded = header.getAttribute('aria-expanded') === 'true';
+            const willExpand = !isCurrentlyExpanded;
+            header.setAttribute('aria-expanded', willExpand.toString());
+            targetBody.style.display = willExpand ? 'flex' : 'none';
+            if (chevron) {
+                chevron.classList.toggle('chevron-open', willExpand);
+            }
+            if (statusText) {
+                statusText.textContent = willExpand ? 'Hide' : 'Show';
+            }
+        }
+
+        header.addEventListener('click', (e) => {
+            e.preventDefault();
+            toggleCollapse();
+        });
+
+        header.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                toggleCollapse();
+            }
+        });
+    });
+
+    // ==========================================
+    // Dedicated Arrow Keys (Media & Navigate)
+    // ==========================================
+    const arrowButtons = document.querySelectorAll('[data-arrow]');
+    arrowButtons.forEach((btn) => {
+        btn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const dir = btn.dataset.arrow;
+            if (!dir) return;
+            triggerHaptic(15);
+            showToast(`Arrow ${dir.charAt(0).toUpperCase() + dir.slice(1)}`);
+            await sendRequest('/arrow', 'POST', { direction: dir });
+        });
+    });
+
+    // ==========================================
+    // Touchpad & Mouse Control (Shared Implementation)
     // ==========================================
     let touchStartX = 0, touchStartY = 0;
     let lastTouchX = 0, lastTouchY = 0;
@@ -526,8 +579,31 @@
         isSendingMouseMove = false;
     }
 
-    if (touchpad) {
-        touchpad.addEventListener('touchstart', (e) => {
+    // Drag Mode Toggle (Shared between Media & Navigate)
+    async function setDragMode(active) {
+        state.isDragging = active;
+        const dragButtons = document.querySelectorAll('[data-mouse-btn="drag"]');
+        dragButtons.forEach((btn) => {
+            btn.classList.toggle('drag-active', state.isDragging);
+            const label = btn.querySelector('.drag-btn-text');
+            if (label) label.textContent = state.isDragging ? 'Drag: ON' : 'Drag: Off';
+        });
+
+        if (state.isDragging) {
+            triggerHaptic(25);
+            showToast('Drag Mode ON (Left Down)');
+            await sendRequest('/mouse-click', 'POST', { button: 'left', action: 'down' });
+        } else {
+            triggerHaptic(15);
+            showToast('Drag Mode OFF');
+            await sendRequest('/mouse-click', 'POST', { button: 'left', action: 'up' });
+        }
+    }
+
+    // Attach touch listeners to all touchpad surfaces across sections
+    const touchpadSurfaces = document.querySelectorAll('.touchpad-surface');
+    touchpadSurfaces.forEach((surface) => {
+        surface.addEventListener('touchstart', (e) => {
             e.preventDefault();
             const t = e.touches[0];
             isTouchActive = true;
@@ -536,10 +612,10 @@
             lastTouchX = t.clientX;
             lastTouchY = t.clientY;
             touchMoveDistance = 0;
-            touchpad.classList.add('active-touch');
+            surface.classList.add('active-touch');
         }, { passive: false });
 
-        touchpad.addEventListener('touchmove', (e) => {
+        surface.addEventListener('touchmove', (e) => {
             e.preventDefault();
             if (!isTouchActive) return;
             const t = e.touches[0];
@@ -555,40 +631,52 @@
             flushMouseMove();
         }, { passive: false });
 
-        touchpad.addEventListener('touchend', (e) => {
+        surface.addEventListener('touchend', async (e) => {
             e.preventDefault();
             isTouchActive = false;
-            touchpad.classList.remove('active-touch');
+            surface.classList.remove('active-touch');
 
-            // Tap gesture detection (under 8px movement = left click)
+            // Tap gesture detection (under 8px movement = left click or release drag)
             if (touchMoveDistance < 8) {
                 triggerHaptic(15);
-                sendRequest('/mouse-click', 'POST', { button: 'left' });
-                showToast('Left Click');
+                if (state.isDragging) {
+                    await setDragMode(false);
+                } else {
+                    sendRequest('/mouse-click', 'POST', { button: 'left', action: 'click' });
+                    showToast('Left Click');
+                }
             }
         }, { passive: false });
 
-        touchpad.addEventListener('touchcancel', () => {
+        surface.addEventListener('touchcancel', () => {
             isTouchActive = false;
-            touchpad.classList.remove('active-touch');
+            surface.classList.remove('active-touch');
         });
-    }
+    });
 
-    if (btnMouseLeft) {
-        btnMouseLeft.addEventListener('click', async () => {
-            triggerHaptic(15);
-            showToast('Left Click');
-            await sendRequest('/mouse-click', 'POST', { button: 'left' });
+    // Left, Right, and Drag Buttons across both Media and Navigate sections
+    const mouseButtons = document.querySelectorAll('[data-mouse-btn]');
+    mouseButtons.forEach((btn) => {
+        btn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const btnType = btn.dataset.mouseBtn;
+            if (btnType === 'drag') {
+                await setDragMode(!state.isDragging);
+            } else if (btnType === 'left') {
+                triggerHaptic(15);
+                if (state.isDragging) {
+                    await setDragMode(false);
+                } else {
+                    showToast('Left Click');
+                    await sendRequest('/mouse-click', 'POST', { button: 'left', action: 'click' });
+                }
+            } else if (btnType === 'right') {
+                triggerHaptic(15);
+                showToast('Right Click');
+                await sendRequest('/mouse-click', 'POST', { button: 'right', action: 'click' });
+            }
         });
-    }
-
-    if (btnMouseRight) {
-        btnMouseRight.addEventListener('click', async () => {
-            triggerHaptic(15);
-            showToast('Right Click');
-            await sendRequest('/mouse-click', 'POST', { button: 'right' });
-        });
-    }
+    });
 
     // ==========================================
     // Screen Wake Lock API

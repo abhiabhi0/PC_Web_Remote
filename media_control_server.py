@@ -554,6 +554,34 @@ def nav_shortcut():
     ok = run_nircmd(shortcut_map[key])
     return jsonify(status=f"Shortcut {key}" if ok else "Failed")
 
+@app.route('/arrow', methods=['POST'])
+def handle_arrow():
+    data = request.get_json(silent=True) or {}
+    direction = str(data.get('direction', '')).lower()
+    
+    arrow_keys = {
+        'up': (win32con.VK_UP if IS_WINDOWS else 0x26, 'up'),
+        'down': (win32con.VK_DOWN if IS_WINDOWS else 0x28, 'down'),
+        'left': (win32con.VK_LEFT if IS_WINDOWS else 0x25, 'left'),
+        'right': (win32con.VK_RIGHT if IS_WINDOWS else 0x27, 'right')
+    }
+    
+    if direction not in arrow_keys:
+        return jsonify(status="Invalid arrow direction"), 400
+        
+    vk, nircmd_name = arrow_keys[direction]
+    if IS_WINDOWS:
+        try:
+            win32api.keybd_event(vk, 0, win32con.KEYEVENTF_EXTENDEDKEY, 0)
+            time.sleep(0.02)
+            win32api.keybd_event(vk, 0, win32con.KEYEVENTF_EXTENDEDKEY | win32con.KEYEVENTF_KEYUP, 0)
+            return jsonify(status=f"Arrow {direction.capitalize()}", direction=direction)
+        except Exception as e:
+            logging.error(f"win32api arrow key event error: {e}")
+            
+    ok = run_nircmd(['sendkeypress', nircmd_name])
+    return jsonify(status=f"Arrow {direction.capitalize()}" if ok else "Failed", direction=direction)
+
 # ==============================================================================
 # Mouse Routes (Touchpad Support)
 # ==============================================================================
@@ -583,26 +611,41 @@ def mouse_move():
 def mouse_click():
     data = request.get_json(silent=True) or {}
     button = data.get('button', 'left')
+    action = data.get('action', 'click')
+    
     if button not in ['left', 'right', 'middle']:
         return jsonify(status="Invalid button"), 400
+    if action not in ['click', 'down', 'up']:
+        return jsonify(status="Invalid action"), 400
         
     if IS_WINDOWS:
         try:
             if button == 'left':
-                win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0)
-                win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP, 0, 0, 0, 0)
+                down_flag = win32con.MOUSEEVENTF_LEFTDOWN
+                up_flag = win32con.MOUSEEVENTF_LEFTUP
             elif button == 'right':
-                win32api.mouse_event(win32con.MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0)
-                win32api.mouse_event(win32con.MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0)
+                down_flag = win32con.MOUSEEVENTF_RIGHTDOWN
+                up_flag = win32con.MOUSEEVENTF_RIGHTUP
             elif button == 'middle':
-                win32api.mouse_event(win32con.MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0)
-                win32api.mouse_event(win32con.MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0)
-            return jsonify(status=f"{button.capitalize()} Click")
+                down_flag = win32con.MOUSEEVENTF_MIDDLEDOWN
+                up_flag = win32con.MOUSEEVENTF_MIDDLEUP
+                
+            if action == 'down':
+                win32api.mouse_event(down_flag, 0, 0, 0, 0)
+                return jsonify(status=f"{button.capitalize()} Down", button=button, action=action)
+            elif action == 'up':
+                win32api.mouse_event(up_flag, 0, 0, 0, 0)
+                return jsonify(status=f"{button.capitalize()} Up", button=button, action=action)
+            else:
+                win32api.mouse_event(down_flag, 0, 0, 0, 0)
+                win32api.mouse_event(up_flag, 0, 0, 0, 0)
+                return jsonify(status=f"{button.capitalize()} Click", button=button, action=action)
         except Exception as e:
-            logging.error(f"win32api mouse click error: {e}")
+            logging.error(f"win32api mouse event error: {e}")
             
-    ok = run_nircmd(['sendmouse', button, 'click'])
-    return jsonify(status=f"{button.capitalize()} Click" if ok else "Failed")
+    cmd_action = 'down' if action == 'down' else ('up' if action == 'up' else 'click')
+    ok = run_nircmd(['sendmouse', button, cmd_action])
+    return jsonify(status=f"{button.capitalize()} {action.capitalize()}" if ok else "Failed", button=button, action=action)
 
 # ==============================================================================
 # Server & System Tray

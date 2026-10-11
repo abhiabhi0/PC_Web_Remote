@@ -535,10 +535,133 @@ body {
     margin-top: 4px;
 }
 
+/* ==================== COLLAPSIBLE CARDS ==================== */
+.card-header-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    padding: 2px 0;
+    transition: opacity 0.15s;
+}
+
+.card-header-toggle:active {
+    opacity: 0.8;
+}
+
+.collapse-toggle-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    font-weight: 500;
+}
+
+.chevron-icon {
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    color: var(--text-muted);
+}
+
+.chevron-icon.chevron-open {
+    transform: rotate(180deg);
+}
+
+.collapsible-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 12px;
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==================== ARROW KEYS & D-PAD ==================== */
+.dpad-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 6px 0;
+}
+
+.dpad-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 72px);
+    grid-template-rows: repeat(3, 68px);
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+}
+
+.btn-dpad {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    background: #161b27;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: background 0.12s, transform 0.08s, border-color 0.12s, box-shadow 0.12s;
+    width: 100%;
+    height: 100%;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.btn-dpad:active,
+.btn-dpad.active {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary-hover);
+    color: #ffffff;
+    transform: scale(0.92);
+    box-shadow: 0 0 16px var(--accent-glow);
+}
+
+.dpad-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--text-secondary);
+}
+
+.btn-dpad:active .dpad-label,
+.btn-dpad.active .dpad-label {
+    color: #ffffff;
+}
+
+.dpad-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.dpad-center-knob {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-color);
+}
+
 /* ==================== TOUCHPAD & MOUSE ==================== */
 .touchpad-surface {
     width: 100%;
-    height: 200px;
+    height: 180px;
     background: #0f121a;
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
@@ -549,6 +672,8 @@ body {
     justify-content: center;
     cursor: crosshair;
     transition: border-color 0.15s, background 0.15s;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 .touchpad-surface.active-touch {
@@ -573,13 +698,27 @@ body {
 
 .mouse-click-row {
     display: flex;
-    gap: 10px;
+    gap: 8px;
 }
 
 .btn-mouse-click {
     flex: 1;
-    height: 52px;
-    font-size: 0.95rem;
+    height: 50px;
+    font-size: 0.88rem;
+    touch-action: manipulation;
+}
+
+.btn-mouse-drag.drag-active {
+    background: var(--status-amber);
+    border-color: #d97706;
+    color: #0c0e14;
+    font-weight: 700;
+    box-shadow: 0 0 14px rgba(245, 158, 11, 0.35);
+}
+
+.btn-mouse-drag.drag-active .drag-btn-text {
+    color: #0c0e14;
+    font-weight: 700;
 }
 
 /* ==================== MORE MODE & SETTINGS ==================== */

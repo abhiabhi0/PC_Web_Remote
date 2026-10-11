@@ -48,11 +48,21 @@ The application requires **no native mobile app or APK installation**. Your Wind
 - ☀️ **Screen Brightness Adjustment**:
   - Dedicated **Dim (-10%)** and **Brighten (+10%)** controls.
   - Real-time percentage display on the remote and an elegant non-intrusive on-screen display (OSD) overlay on your laptop screen.
+- 🎯 **Dedicated Arrow Keys (Collapsible D-Pad)**:
+  - Mobile-friendly 4-way directional pad sending native Windows keyboard arrow keys (↑, ↓, ←, →).
+  - Perfect for VLC and other media players that use arrow keys for native seeking and fine playback adjustments.
+  - Collapsible with one tap to keep the primary Media controls prominent and easy to reach while watching movies.
+- 🖱️ **Collapsible Mouse & Touchpad**:
+  - Touchpad surface for smooth Windows cursor navigation without leaving the Media screen.
+  - Tap-to-click, **Left Click**, **Right Click**, and **Drag Lock** (`Drag: ON / OFF`) for selecting or dragging sliders and windows.
+  - Collapsible to maintain an uncluttered layout during movie playback.
 
 ### 2. 🧭 Navigation & Shortcuts Mode
 - 🎵 **Media Track Navigation**:
   - **Previous Track (`|<<`)** and **Next Track (`>>|`)**: Clearly labeled controls that send native Windows media track commands (`VK_MEDIA_PREV_TRACK` `0xB1` and `VK_MEDIA_NEXT_TRACK` `0xB0`) to compatible players (Spotify, VLC, YouTube, etc.).
   - Kept completely separate from browser back/forward navigation.
+- 🎯 **Dedicated Arrow Keys (D-Pad)**:
+  - 4-way keyboard D-pad (Up, Left, Down, Right) for general Windows navigation, selecting items, scrolling lists, and media player shortcuts.
 - 🌐 **Browser & Window Navigation**:
   - **Browser Back** & **Browser Forward**: Sends native Windows shortcuts (`Alt+Left` / `Alt+Right` / `VK_BROWSER_BACK`) to your active PC window without navigating your phone's browser.
   - **Refresh**: Sends `F5` / browser refresh.
@@ -62,9 +72,9 @@ The application requires **no native mobile app or APK installation**. Your Wind
   - **Previous Slide** (`Page Up`) and **Next Slide** (`Page Down`).
 - ⌨️ **Convenient Shortcuts**: One-tap buttons for **Tab**, **Enter**, **Space**, **Show Desktop (`Win+D`)**, **Alt+Tab**, and **Subtitles** (safely validated through an allowlist).
 - 🖱️ **Touchpad Mouse**:
-  - Smooth, low-latency touchpad with touch-drag cursor movement.
-  - Tap-to-click gesture and dedicated **Left Click** and **Right Click** buttons.
-  - Non-intrusive design that leaves ample space for controls.
+  - Smooth, low-latency touchpad with touch-drag cursor movement and `touch-action: none` to prevent mobile page scrolling.
+  - Tap-to-click gesture, dedicated **Left Click** and **Right Click** buttons, and **Drag Lock** mode.
+  - Fully synchronized with the Media section touchpad.
 
 ### 3. ⚙️ More & Connection Management
 - 📡 **Connection Diagnostics**: Live status indicator (Online / Reconnecting / Offline), PC Hostname, Local IP, and active connection URLs.
@@ -236,9 +246,29 @@ The bottom navigation bar allows switching between three primary screens:
 - To use a custom duration, enter positive integer seconds into the **Sec** box and tap **Set**.
 - The Rewind and Forward buttons dynamically display the active interval (e.g., `−15 sec` and `+15 sec`).
 
+### Arrow Keys & VLC Media Player Compatibility
+- **Dedicated Arrow Keys (D-Pad)**: The 4 directional buttons (↑, ↓, ←, →) send native keyboard arrow keys directly to the active window on your Windows PC.
+- **VLC Behavior**:
+  - In VLC Media Player, pressing the Left/Right arrows triggers VLC's native configured jump (e.g., 10-second short jump).
+  - Pressing Up/Down arrows adjusts VLC's internal playback volume.
+  - This allows you to use VLC's native navigation and key bindings without conflicting with PC Web Remote's global controls.
+- **Distinction from Rewind/Forward**:
+  - The dedicated **Rewind / Forward** buttons use PC Web Remote's configurable seek duration (e.g., 5s, 10s, 30s).
+  - The **Arrow Keys** send literal keyboard arrow strokes to let the active application handle the key according to its own shortcuts.
+- **Distinction from System Volume**:
+  - The dedicated **System Volume** slider and step buttons globally adjust Windows master audio via Windows Core Audio.
+  - Arrow key events do not alter system-wide volume unless the focused application's specific shortcuts do so.
+
+### Mouse & Touchpad Controls (Media & Navigate)
+- **Collapsible Panels in Media Mode**: To keep primary movie controls easy to tap without scrolling, the Arrow Keys and Mouse/Touchpad panels in the Media section are collapsible. Tap the header to expand or hide them at any time.
+- **Touchpad Surface**: Swipe across the touchpad surface to smoothly glide the Windows cursor. Tapping quickly triggers a native Left Click.
+- **Left & Right Click**: Dedicated mobile-friendly buttons provide tactile click actions.
+- **Drag Lock**: Tap the **Drag** button to toggle Drag Mode (`Drag: ON`). When active, the left mouse button is held down while you swipe the touchpad, enabling window moving, slider dragging, and text selection. Tap Drag or Left Click again to release.
+- **Accidental Scroll Prevention**: The touchpad surface uses `touch-action: none` and dedicated touch handlers so finger movement controls the PC cursor without scrolling your phone's webpage.
+
 ### Important Notes on Application Focus
-- Keystroke-based commands (such as Rewind/Forward seeking using arrow keys, Browser Back/Forward using `Alt+Left`/`Alt+Right`, and Presentation slide changes) send keystrokes to the **active, foreground window** on your PC.
-- Make sure your media player (e.g., VLC, YouTube tab in Chrome, Netflix, MPC) is the focused application on your PC.
+- Keystroke-based commands (such as Arrow Keys, Rewind/Forward seeking, Browser Back/Forward using `Alt+Left`/`Alt+Right`, and Presentation slide changes) send keystrokes to the **active, foreground window** on your PC.
+- Make sure your target media player (e.g., VLC, YouTube tab in Chrome, Netflix, MPC) is the focused application on your PC.
 
 ### Track Navigation vs. Seeking
 - **Rewind / Forward** (in Media mode) skips backward or forward *within the current media file or video*.

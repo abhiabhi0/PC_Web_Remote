@@ -31,6 +31,17 @@ class TestPCWebRemoteServer(unittest.TestCase):
         self.assertIn('btn-media-prev', html)
         self.assertIn('btn-media-next', html)
 
+        # Verify Collapsible Arrow Keys and Touchpad exist in both Media and Navigate sections
+        self.assertIn('card-arrow-media', html)
+        self.assertIn('card-touchpad-media', html)
+        self.assertIn('card-arrow-nav', html)
+        self.assertIn('card-touchpad-nav', html)
+        self.assertIn('data-arrow="up"', html)
+        self.assertIn('data-arrow="down"', html)
+        self.assertIn('data-arrow="left"', html)
+        self.assertIn('data-arrow="right"', html)
+        self.assertIn('data-mouse-btn="drag"', html)
+
         # Verify Motion controls have been removed
         self.assertNotIn('btn-motion-toggle-nav', html)
         self.assertNotIn('motion-hud', html)
@@ -219,9 +230,23 @@ class TestPCWebRemoteServer(unittest.TestCase):
         res_bad = self.client.post('/nav/shortcut', json={'key': 'rmdir /s'})
         self.assertEqual(res_bad.status_code, 400)
 
+    @patch('media_control_server.win32api.keybd_event')
+    def test_arrow_route(self, mock_keybd_event):
+        """Arrow route sends native arrow keys."""
+        for dir_name in ['up', 'down', 'left', 'right']:
+            res = self.client.post('/arrow', json={'direction': dir_name})
+            self.assertEqual(res.status_code, 200)
+            data = json.loads(res.data.decode('utf-8'))
+            self.assertEqual(data['direction'], dir_name)
+            self.assertIn('Arrow', data['status'])
+
+        # Invalid direction returns 400
+        res_bad = self.client.post('/arrow', json={'direction': 'sideways'})
+        self.assertEqual(res_bad.status_code, 400)
+
     @patch('media_control_server.win32api.mouse_event')
     def test_mouse_routes(self, mock_mouse_event):
-        """Mouse move and click endpoints."""
+        """Mouse move and click endpoints with drag support."""
         res_move = self.client.post('/mouse-move', json={'dx': 12, 'dy': -8})
         self.assertEqual(res_move.status_code, 200)
         mock_mouse_event.assert_called_with(1, 12, -8, 0, 0) # 1 is MOUSEEVENTF_MOVE
@@ -232,8 +257,22 @@ class TestPCWebRemoteServer(unittest.TestCase):
         res_click_right = self.client.post('/mouse-click', json={'button': 'right'})
         self.assertEqual(res_click_right.status_code, 200)
 
+        # Drag actions: down and up
+        res_drag_down = self.client.post('/mouse-click', json={'button': 'left', 'action': 'down'})
+        self.assertEqual(res_drag_down.status_code, 200)
+        data_down = json.loads(res_drag_down.data.decode('utf-8'))
+        self.assertEqual(data_down['action'], 'down')
+
+        res_drag_up = self.client.post('/mouse-click', json={'button': 'left', 'action': 'up'})
+        self.assertEqual(res_drag_up.status_code, 200)
+        data_up = json.loads(res_drag_up.data.decode('utf-8'))
+        self.assertEqual(data_up['action'], 'up')
+
         res_click_bad = self.client.post('/mouse-click', json={'button': 'invalid'})
         self.assertEqual(res_click_bad.status_code, 400)
+
+        res_action_bad = self.client.post('/mouse-click', json={'button': 'left', 'action': 'invalid'})
+        self.assertEqual(res_action_bad.status_code, 400)
 
     def test_removed_window_switcher(self):
         """Ensure /windows and /switch-window endpoints have been completely removed."""

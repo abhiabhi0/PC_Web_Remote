@@ -160,11 +160,113 @@
                         </button>
                     </div>
                 </div>
+
+                <!-- Dedicated Arrow Keys Card (Media Section - Collapsible) -->
+                <div class="card arrow-keys-card collapsible-card" id="card-arrow-media">
+                    <div class="card-header card-header-toggle" role="button" tabindex="0" aria-expanded="false" data-toggle-target="body-arrow-media">
+                        <div class="card-title">
+                            <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="18 15 12 9 6 15"></polyline>
+                            </svg>
+                            <span>Arrow Keys (VLC / Media Seek)</span>
+                        </div>
+                        <div class="collapse-toggle-indicator">
+                            <span class="collapse-status-text">Show</span>
+                            <svg class="icon icon-xs chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="collapsible-body" id="body-arrow-media" style="display: none;">
+                        <div class="dpad-container">
+                            <div class="dpad-grid">
+                                <div class="dpad-cell"></div>
+                                <button class="btn btn-dpad btn-dpad-up" data-arrow="up" aria-label="Arrow Up" title="Up Arrow (↑)">
+                                    <svg class="icon icon-md" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                        <polyline points="18 15 12 9 6 15"></polyline>
+                                    </svg>
+                                    <span class="dpad-label">Up</span>
+                                </button>
+                                <div class="dpad-cell"></div>
+
+                                <button class="btn btn-dpad btn-dpad-left" data-arrow="left" aria-label="Arrow Left" title="Left Arrow (←)">
+                                    <svg class="icon icon-md" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                        <polyline points="15 18 9 12 15 6"></polyline>
+                                    </svg>
+                                    <span class="dpad-label">Left</span>
+                                </button>
+                                <div class="dpad-center" aria-hidden="true">
+                                    <div class="dpad-center-knob"></div>
+                                </div>
+                                <button class="btn btn-dpad btn-dpad-right" data-arrow="right" aria-label="Arrow Right" title="Right Arrow (→)">
+                                    <svg class="icon icon-md" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                        <polyline points="9 18 15 12 9 6"></polyline>
+                                    </svg>
+                                    <span class="dpad-label">Right</span>
+                                </button>
+
+                                <div class="dpad-cell"></div>
+                                <button class="btn btn-dpad btn-dpad-down" data-arrow="down" aria-label="Arrow Down" title="Down Arrow (↓)">
+                                    <svg class="icon icon-md" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                        <polyline points="6 9 12 15 18 9"></polyline>
+                                    </svg>
+                                    <span class="dpad-label">Down</span>
+                                </button>
+                                <div class="dpad-cell"></div>
+                            </div>
+                        </div>
+                        <div class="focus-notice">
+                            <svg class="icon icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="16" x2="12" y2="12"></line>
+                                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                            </svg>
+                            <span>Sends keyboard arrow keys to the active window on PC (e.g. VLC seek/volume).</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Collapsible Mouse & Touchpad Card (Media Section) -->
+                <div class="card touchpad-card collapsible-card" id="card-touchpad-media">
+                    <div class="card-header card-header-toggle" role="button" tabindex="0" aria-expanded="false" data-toggle-target="body-touchpad-media">
+                        <div class="card-title">
+                            <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="6" y="3" width="12" height="18" rx="6"></rect>
+                                <line x1="12" y1="7" x2="12" y2="11"></line>
+                            </svg>
+                            <span>Mouse & Touchpad</span>
+                        </div>
+                        <div class="collapse-toggle-indicator">
+                            <span class="collapse-status-text">Show</span>
+                            <svg class="icon icon-xs chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="collapsible-body" id="body-touchpad-media" style="display: none;">
+                        <div class="touchpad-surface" role="region" aria-label="Touchpad mouse control">
+                            <div class="touchpad-crosshair"></div>
+                            <div class="touchpad-hint">Swipe to move cursor • Tap to click</div>
+                        </div>
+
+                        <div class="mouse-click-row">
+                            <button class="btn btn-secondary btn-mouse-click" data-mouse-btn="left" aria-label="Left Mouse Click">
+                                <span>Left Click</span>
+                            </button>
+                            <button class="btn btn-secondary btn-mouse-click btn-mouse-drag" data-mouse-btn="drag" aria-label="Toggle Drag & Drop" title="Hold left click for dragging">
+                                <span class="drag-btn-text">Drag: Off</span>
+                            </button>
+                            <button class="btn btn-secondary btn-mouse-click" data-mouse-btn="right" aria-label="Right Mouse Click">
+                                <span>Right Click</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </section>
 
             <!-- ===================== NAVIGATE MODE ===================== -->
             <section id="view-nav" class="mode-view">
-                <!-- Media Track Navigation Card (Relocated from Media) -->
+                <!-- Media Track Navigation Card -->
                 <div class="card track-nav-card">
                     <div class="card-title">
                         <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -189,6 +291,71 @@
                                 <line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="3"></line>
                             </svg>
                         </button>
+                    </div>
+                </div>
+
+                <!-- Dedicated Arrow Keys Card (Navigate Section) -->
+                <div class="card arrow-keys-card collapsible-card" id="card-arrow-nav">
+                    <div class="card-header card-header-toggle" role="button" tabindex="0" aria-expanded="true" data-toggle-target="body-arrow-nav">
+                        <div class="card-title">
+                            <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="18 15 12 9 6 15"></polyline>
+                            </svg>
+                            <span>Arrow Keys (D-Pad)</span>
+                        </div>
+                        <div class="collapse-toggle-indicator">
+                            <span class="collapse-status-text">Hide</span>
+                            <svg class="icon icon-xs chevron-icon chevron-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="collapsible-body" id="body-arrow-nav">
+                        <div class="dpad-container">
+                            <div class="dpad-grid">
+                                <div class="dpad-cell"></div>
+                                <button class="btn btn-dpad btn-dpad-up" data-arrow="up" aria-label="Arrow Up" title="Up Arrow (↑)">
+                                    <svg class="icon icon-md" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                        <polyline points="18 15 12 9 6 15"></polyline>
+                                    </svg>
+                                    <span class="dpad-label">Up</span>
+                                </button>
+                                <div class="dpad-cell"></div>
+
+                                <button class="btn btn-dpad btn-dpad-left" data-arrow="left" aria-label="Arrow Left" title="Left Arrow (←)">
+                                    <svg class="icon icon-md" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                        <polyline points="15 18 9 12 15 6"></polyline>
+                                    </svg>
+                                    <span class="dpad-label">Left</span>
+                                </button>
+                                <div class="dpad-center" aria-hidden="true">
+                                    <div class="dpad-center-knob"></div>
+                                </div>
+                                <button class="btn btn-dpad btn-dpad-right" data-arrow="right" aria-label="Arrow Right" title="Right Arrow (→)">
+                                    <svg class="icon icon-md" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                        <polyline points="9 18 15 12 9 6"></polyline>
+                                    </svg>
+                                    <span class="dpad-label">Right</span>
+                                </button>
+
+                                <div class="dpad-cell"></div>
+                                <button class="btn btn-dpad btn-dpad-down" data-arrow="down" aria-label="Arrow Down" title="Down Arrow (↓)">
+                                    <svg class="icon icon-md" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                        <polyline points="6 9 12 15 18 9"></polyline>
+                                    </svg>
+                                    <span class="dpad-label">Down</span>
+                                </button>
+                                <div class="dpad-cell"></div>
+                            </div>
+                        </div>
+                        <div class="focus-notice">
+                            <svg class="icon icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="16" x2="12" y2="12"></line>
+                                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                            </svg>
+                            <span>Sends keyboard arrow keys to the active window on PC (e.g. VLC seek/volume).</span>
+                        </div>
                     </div>
                 </div>
 
@@ -281,9 +448,9 @@
                     </div>
                 </div>
 
-                <!-- Touchpad & Mouse Section -->
-                <div class="card touchpad-card">
-                    <div class="card-header">
+                <!-- Touchpad & Mouse Section (Navigate) -->
+                <div class="card touchpad-card collapsible-card" id="card-touchpad-nav">
+                    <div class="card-header card-header-toggle" role="button" tabindex="0" aria-expanded="true" data-toggle-target="body-touchpad-nav">
                         <div class="card-title">
                             <svg class="icon icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <rect x="6" y="3" width="12" height="18" rx="6"></rect>
@@ -291,20 +458,31 @@
                             </svg>
                             <span>Mouse & Touchpad</span>
                         </div>
+                        <div class="collapse-toggle-indicator">
+                            <span class="collapse-status-text">Hide</span>
+                            <svg class="icon icon-xs chevron-icon chevron-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </div>
                     </div>
 
-                    <div class="touchpad-surface" id="touchpad" role="region" aria-label="Touchpad mouse control">
-                        <div class="touchpad-crosshair"></div>
-                        <div class="touchpad-hint">Swipe to move cursor • Tap to click</div>
-                    </div>
+                    <div class="collapsible-body" id="body-touchpad-nav">
+                        <div class="touchpad-surface" id="touchpad" role="region" aria-label="Touchpad mouse control">
+                            <div class="touchpad-crosshair"></div>
+                            <div class="touchpad-hint">Swipe to move cursor • Tap to click</div>
+                        </div>
 
-                    <div class="mouse-click-row">
-                        <button class="btn btn-secondary btn-mouse-click" id="btn-mouse-left">
-                            <span>Left Click</span>
-                        </button>
-                        <button class="btn btn-secondary btn-mouse-click" id="btn-mouse-right">
-                            <span>Right Click</span>
-                        </button>
+                        <div class="mouse-click-row">
+                            <button class="btn btn-secondary btn-mouse-click" id="btn-mouse-left" data-mouse-btn="left" aria-label="Left Mouse Click">
+                                <span>Left Click</span>
+                            </button>
+                            <button class="btn btn-secondary btn-mouse-click btn-mouse-drag" data-mouse-btn="drag" aria-label="Toggle Drag & Drop" title="Hold left click for dragging">
+                                <span class="drag-btn-text">Drag: Off</span>
+                            </button>
+                            <button class="btn btn-secondary btn-mouse-click" id="btn-mouse-right" data-mouse-btn="right" aria-label="Right Mouse Click">
+                                <span>Right Click</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </section>
