@@ -300,40 +300,109 @@ The bottom navigation bar allows switching between three primary screens:
 
 ## 💻 Development and Contributing
 
+Contributions are welcome! Bug fixes, accessibility improvements, documentation updates, new controls, and tests are all useful. You do not need to be an expert in every part of the codebase to help.
+
+### Before You Start
+
+- Check the [open issues](https://github.com/abhiabhi0/PC_Web_Remote/issues) to see what is already being discussed.
+- For a substantial change or a new feature, open an issue first so we can agree on the approach before you spend time implementing it.
+- For a small typo or documentation fix, a pull request can be opened directly.
+- Please keep changes focused. Smaller pull requests are easier to review and merge.
+
+### Set Up a Development Environment
+
+PC Web Remote integrates with Windows APIs, so full functionality is intended to run on Windows 10 or Windows 11.
+
+1. Install Git and Python 3.8 or newer.
+2. Fork this repository on GitHub, then clone your fork:
+
+   ```powershell
+   git clone https://github.com/<YOUR_GITHUB_USERNAME>/PC_Web_Remote.git
+   cd PC_Web_Remote
+   ```
+
+3. (Recommended) Create and activate a virtual environment:
+
+   ```powershell
+   python -m venv .venv
+   .\.venv\Scripts\Activate.ps1
+   ```
+
+4. Install dependencies:
+
+   ```powershell
+   python -m pip install -r requirements.txt
+   ```
+
+5. Start the application:
+
+   ```powershell
+   python media_control_server.py
+   ```
+
+   You can also use `Start_PC_Remote.bat` on Windows.
+
 ### Project Structure
-```
+
+```text
 PC_Web_Remote/
-├── media_control_server.py   # Flask server, Core Audio, NirCmd, WMI, OSD, tray icon
-├── requirements.txt          # Python library dependencies
-├── nircmd.exe                # Bundled NirCmd Windows utility
-├── Start_PC_Remote.bat       # Startup batch script
-├── Run_Hidden.vbs            # Silent background launcher
+├── media_control_server.py   # Flask server and Windows integrations
+├── requirements.txt          # Python dependencies
 ├── templates/
-│   └── index.html            # Mobile-first responsive HTML interface
+│   └── index.html            # Responsive web interface
 ├── static/
-│   ├── css/
-│   │   └── style.css         # Cinema dark theme stylesheet
-│   ├── js/
-│   │   └── app.js            # Frontend client logic & PWA handlers
-│   ├── manifest.webmanifest  # W3C Web App Manifest
-│   ├── manifest.json         # Web App Manifest alias
-│   ├── sw.js                 # PWA Service Worker (network-first shell cache)
-│   └── icons/
-│       ├── icon-192.png      # 192x192 PWA application icon
-│       └── icon-512.png      # 512x512 PWA application icon
-└── tests/
-    └── test_server.py        # Automated test suite
+│   ├── css/style.css         # UI styling
+│   ├── js/app.js             # Browser controls and PWA logic
+│   ├── sw.js                 # Service worker
+│   └── icons/                # PWA icons
+├── tests/
+│   └── test_server.py        # Automated tests
+├── Start_PC_Remote.bat       # Windows launcher
+├── Run_Hidden.vbs            # Background launcher
+└── nircmd.exe                # Third-party Windows utility
 ```
 
-### Running Automated Tests
-Run the test suite from the repository root:
-```bash
+### Run the Tests
+
+From the repository root, run:
+
+```powershell
 python -m unittest discover -s tests -v
 ```
+
+Please run the tests before submitting your changes. Add or update tests when changing routes, input validation, or application behavior. Some functionality depends on Windows APIs and may need to be tested on a Windows machine; mention any tests you could not run in your pull request.
+
+### Contribution Workflow
+
+1. Create a branch for your change (for example, `fix/arrow-key-control` or `docs/setup-guide`).
+2. Make the smallest change that solves the issue.
+3. Run the relevant tests and manually verify affected controls when possible.
+4. Commit with a clear, descriptive message, such as `Fix arrow-key validation`.
+5. Push your branch to your fork and open a pull request against the `master` branch.
+
+### Pull Request Checklist
+
+Before requesting review, please make sure your pull request:
+
+- Explains **what changed and why**, and links the related issue if there is one.
+- Describes how the change was tested, including any platform limitations.
+- Includes or updates tests for behavior changes where practical.
+- Updates the README or other documentation when user-facing behavior or setup changes.
+- Does not include unrelated refactoring, generated files, logs, secrets, or personal configuration.
+- Includes screenshots or a short recording for visible UI changes when useful.
+
+Be respectful and constructive in reviews and discussions. Maintainers may ask for changes or clarification before merging a contribution.
+
+### Report Bugs and Suggest Features
+
+Use [GitHub Issues](https://github.com/abhiabhi0/PC_Web_Remote/issues) to report bugs or suggest improvements. Include clear reproduction steps, expected and actual behavior, your Windows version, your Python version, and relevant error messages. Do not publish passwords, tokens, private IP information you do not wish to share, or other sensitive details.
+
+For security-sensitive reports, avoid posting exploit details publicly in an issue. Contact the repository owner privately through GitHub instead.
 
 ---
 
 ## 📜 License and Third-Party Components
 
-- **Project License**: Open source under the MIT License.
-- **NirCmd Utility**: This project bundles `nircmd.exe`, a freeware command-line utility created by Nir Sofer. For licensing and documentation, visit the official NirCmd website: [https://www.nirsoft.net/utils/nircmd.html](https://www.nirsoft.net/utils/nircmd.html).
+The original project code in this repository is licensed under the [MIT License](LICENSE). You may use, modify, and distribute it under the terms of that license, including in commercial projects, provided the required copyright and license notice is retained.
+
+The repository also includes third-party software, including NirCmd (`nircmd.exe`, `nircmdc.exe`, and its documentation). **Third-party components are not automatically covered by this project's MIT License.** Review and follow the original terms for each component before redistributing or modifying it. NirCmd is provided by Nir Sofer; see the [official NirCmd page](https://www.nirsoft.net/utils/nircmd.html) for its documentation and licensing terms.
